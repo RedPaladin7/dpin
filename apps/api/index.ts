@@ -29,7 +29,8 @@ app.get("/api/v1/website/status", authMiddleware, async(req, res) => {
     const data = await prismaClient.website.findFirst({
         where: {
             id: websiteId,
-            userId
+            userId,
+            disabled: false
         }, 
         include: {
             ticks: true
@@ -43,7 +44,11 @@ app.get("/api/v1/websites", authMiddleware, async(req, res) => {
 
     const websites = await prismaClient.website.findMany({
         where: {
-            userId
+            userId,
+            disabled: false
+        },
+        include: {
+            ticks: true
         }
     })
     res.json({websites})
@@ -68,4 +73,4 @@ app.delete("/api/v1/website", authMiddleware, async(req, res) => {
     })
 })
 
-app.listen(8000);
+app.listen(8080);
