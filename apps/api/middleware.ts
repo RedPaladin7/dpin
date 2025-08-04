@@ -14,7 +14,6 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction){
         return res.status(401).json({error: 'Unauthorized'})
     }
 
-    req.userId = decoded.sub as string 
-    
+    req.userId = decoded.sub as string     
     next()
 }

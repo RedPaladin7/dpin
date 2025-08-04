@@ -1,9 +1,10 @@
 import express from "express"
 import {authMiddleware} from "./middleware"
 import {prismaClient} from "db/client"
-import { isEqualsGreaterThanToken } from "typescript";
+import cors from "cors"
 
 const app = express();
+app.use(cors())
 app.use(express.json())
 
 app.post("/api/v1/website", authMiddleware, async(req, res) => {
@@ -73,4 +74,6 @@ app.delete("/api/v1/website", authMiddleware, async(req, res) => {
     })
 })
 
-app.listen(8080);
+app.listen(8080, ()=>{
+    console.log("Backend server is running...")
+});

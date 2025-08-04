@@ -1,12 +1,13 @@
 "use client";
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, use } from 'react';
 import { ChevronDown, ChevronUp, Globe, Plus, Moon, Sun } from 'lucide-react';
 import { useWebsites } from '@/hooks/useWebsites';
 import axios from 'axios';
 import { API_BACKEND_URL } from '@/config';
 import { useAuth } from '@clerk/nextjs';
+import { Dangrek } from 'next/font/google';
 
-type UptimeStatus = "good" | "bad" | "unknown";
+type UptimeStatus = "good" | "bad" | "unknown"
 
 function StatusCircle({ status }: { status: UptimeStatus }) {
   return (
@@ -76,7 +77,7 @@ interface ProcessedWebsite {
   status: UptimeStatus;
   uptimePercentage: number;
   lastChecked: string;
-  uptimeTicks: UptimeStatus[];
+  uptimeTicks: UptimeStatus[]
 }
 
 function WebsiteCard({ website }: { website: ProcessedWebsite }) {
@@ -122,53 +123,42 @@ function WebsiteCard({ website }: { website: ProcessedWebsite }) {
 }
 
 function App() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const {websites, refreshWebsites} = useWebsites();
-  const { getToken } = useAuth();
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const {websites, refreshWebsites} = useWebsites()
+  const {getToken} = useAuth()
 
-  const processedWebsites = useMemo(() => {
+  const processedWebsites = useMemo(()=>{
     return websites.map(website => {
-      // Sort ticks by creation time
-      const sortedTicks = [...website.ticks].sort((a, b) => 
+      const sortedTicks = [...website.ticks].sort((a, b)=>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+      ) 
 
-      // Get the most recent 30 minutes of ticks
-      const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+      const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000)
       const recentTicks = sortedTicks.filter(tick => 
         new Date(tick.createdAt) > thirtyMinutesAgo
-      );
-
-      // Aggregate ticks into 3-minute windows (10 windows total)
+      )
       const windows: UptimeStatus[] = [];
 
-      for (let i = 0; i < 10; i++) {
-        const windowStart = new Date(Date.now() - (i + 1) * 3 * 60 * 1000);
-        const windowEnd = new Date(Date.now() - i * 3 * 60 * 1000);
-        
-        const windowTicks = recentTicks.filter(tick => {
-          const tickTime = new Date(tick.createdAt);
-          return tickTime >= windowStart && tickTime < windowEnd;
-        });
+      for(let i=0; i<10; i++){
+        const windowStart = new Date(Date.now() - (i+1) * 3 * 60 * 1000)
+        const windowEnd = new Date(Date.now() - i*3*60*1000)
 
-        // Window is considered up if majority of ticks are up
-        const upTicks = windowTicks.filter(tick => tick.status === 'Good').length;
-        windows[9 - i] = windowTicks.length === 0 ? "unknown" : (upTicks / windowTicks.length) >= 0.5 ? "good" : "bad";
+        const windowTicks = recentTicks.filter(tick =>{
+          const tickTime = new Date(tick.createdAt)
+          return tickTime >= windowStart && tickTime < windowEnd
+        })
+        const upTicks = windowTicks.filter(tick => tick.status == 'Good').length
+        windows[9-i] = windowTicks.length === 0 ? "unknown" : (upTicks / windowTicks.length) >= 0.5 ? 'good' : 'bad'
       }
 
-      // Calculate overall status and uptime percentage
-      const totalTicks = sortedTicks.length;
-      const upTicks = sortedTicks.filter(tick => tick.status === 'Good').length;
-      const uptimePercentage = totalTicks === 0 ? 100 : (upTicks / totalTicks) * 100;
+      const totalTicks = sortedTicks.length 
+      const upTicks = sortedTicks.filter(tick => tick.status === 'Good').length 
+      const uptimePercentage = totalTicks === 0 ? 100 : (upTicks / totalTicks) * 100
 
-      // Get the most recent status
-      const currentStatus = windows[windows.length - 1];
+      const currentStatus = windows[windows.length - 1]
 
-      // Format the last checked time
-      const lastChecked = sortedTicks[0]
-        ? new Date(sortedTicks[0].createdAt).toLocaleTimeString()
-        : 'Never';
+      const lastChecked = sortedTicks[0] ? new Date(sortedTicks[0].createdAt).toLocaleDateString() : 'Never'
 
       return {
         id: website.id,
@@ -176,12 +166,11 @@ function App() {
         status: currentStatus,
         uptimePercentage,
         lastChecked,
-        uptimeTicks: windows,
-      };
-    });
-  }, [websites]);
+        uptimeTicks: windows
+      }
+    })
+  }, [websites])
 
-  // Toggle dark mode
   React.useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -252,4 +241,4 @@ function App() {
   );
 }
 
-export default App;
+export default App
